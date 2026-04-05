@@ -48,11 +48,13 @@ const hexToRgb = (hex: string) => {
   return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '188, 0, 45';
 };
 
+import Toast from './Toast';
+
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { tripId } = useParams();
-  const { lastTripId, trips, theme, themeColor, fontSize, setTheme, setThemeColor, setFontSize, clearAllData } = useTrips();
+  const { lastTripId, trips, theme, themeColor, fontSize, setTheme, setThemeColor, setFontSize, clearAllData, toast, showToast, hideToast } = useTrips();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -99,6 +101,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         {children}
       </main>
 
+      <Toast 
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
+
       <nav className={`fixed bottom-0 left-0 right-0 z-50 px-1 py-1 shadow-lg border-t transition-colors duration-300
         ${theme === 'dark' ? 'bg-[#1E1E1E]/95 border-white/5' : 'bg-white/95 border-gray-100'} backdrop-blur-xl`}>
         <div className="max-w-xl mx-auto flex items-center justify-between px-2">
@@ -107,7 +116,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               key={item.name}
               to={item.path}
               onClick={(e) => {
-                if (item.path === '#') { e.preventDefault(); alert('請先建立旅程！'); }
+                if (item.path === '#') { 
+                  e.preventDefault(); 
+                  showToast('請先建立旅程！', 'info');
+                }
                 setIsSettingsOpen(false);
               }}
               className={({ isActive }) => `

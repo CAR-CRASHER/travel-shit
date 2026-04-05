@@ -10,6 +10,7 @@ interface TripContextType {
   theme: 'light' | 'dark';
   themeColor: string;
   fontSize: FontSize;
+  toast: { message: string, type: 'success' | 'error' | 'info', isVisible: boolean };
   addTrip: (trip: Trip) => void;
   updateTrip: (trip: Trip) => void;
   deleteTrip: (id: string) => void;
@@ -19,6 +20,8 @@ interface TripContextType {
   setTheme: (theme: 'light' | 'dark') => void;
   setThemeColor: (color: string) => void;
   setFontSize: (size: FontSize) => void;
+  showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+  hideToast: () => void;
 }
 
 const TripContext = createContext<TripContextType | undefined>(undefined);
@@ -39,6 +42,11 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [theme, setThemeState] = useState<'light' | 'dark'>(() => (localStorage.getItem(THEME_KEY) as 'light' | 'dark') || 'light');
   const [themeColor, setThemeColorState] = useState<string>(() => localStorage.getItem(COLOR_KEY) || '#BC002D');
   const [fontSize, setFontSizeState] = useState<FontSize>(() => (localStorage.getItem(FONT_SIZE_KEY) as FontSize) || 'medium');
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info', isVisible: boolean }>({
+    message: '',
+    type: 'info',
+    isVisible: false
+  });
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(trips));
@@ -62,6 +70,14 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const setLastTripId = useCallback((id: string) => {
     setLastTripIdState(id);
     localStorage.setItem(LAST_TRIP_KEY, id);
+  }, []);
+
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ message, type, isVisible: true });
+  }, []);
+
+  const hideToast = useCallback(() => {
+    setToast(prev => ({ ...prev, isVisible: false }));
   }, []);
 
   const addTrip = useCallback((trip: Trip) => {
@@ -95,9 +111,9 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <TripContext.Provider value={{ 
-      trips, lastTripId, theme, themeColor, fontSize,
+      trips, lastTripId, theme, themeColor, fontSize, toast,
       addTrip, updateTrip, deleteTrip, getTripById, setLastTripId, 
-      setTheme, setThemeColor, setFontSize, clearAllData
+      setTheme, setThemeColor, setFontSize, clearAllData, showToast, hideToast
     }}>
       {children}
     </TripContext.Provider>
